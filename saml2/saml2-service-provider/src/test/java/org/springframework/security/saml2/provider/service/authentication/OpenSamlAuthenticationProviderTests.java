@@ -46,6 +46,7 @@ import org.opensaml.saml.saml2.core.AttributeValue;
 import org.opensaml.saml.saml2.core.EncryptedAssertion;
 import org.opensaml.saml.saml2.core.EncryptedID;
 import org.opensaml.saml.saml2.core.NameID;
+import org.opensaml.saml.saml2.core.OneTimeUse;
 import org.opensaml.saml.saml2.core.Response;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -207,6 +208,18 @@ public class OpenSamlAuthenticationProviderTests {
 		assertion.getSubject().getSubjectConfirmations().forEach(
 				sc -> sc.getSubjectConfirmationData().setAddress("10.10.10.10")
 		);
+		signed(assertion, assertingPartySigningCredential(), RELYING_PARTY_ENTITY_ID);
+		response.getAssertions().add(assertion);
+		Saml2AuthenticationToken token = token(response, relyingPartyVerifyingCredential());
+		this.provider.authenticate(token);
+	}
+
+	@Test
+	public void authenticateWhenAssertionContainsOneTimeUseConditionThenItSucceeds() throws Exception {
+		Response response = response();
+		Assertion assertion = assertion();
+		OneTimeUse oneTimeUse = saml.buildSamlObject(OneTimeUse.DEFAULT_ELEMENT_NAME);
+		assertion.getConditions().getConditions().add(oneTimeUse);
 		signed(assertion, assertingPartySigningCredential(), RELYING_PARTY_ENTITY_ID);
 		response.getAssertions().add(assertion);
 		Saml2AuthenticationToken token = token(response, relyingPartyVerifyingCredential());
